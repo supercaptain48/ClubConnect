@@ -1,15 +1,31 @@
+import { auth } from "@/firebaseConfig";
 import { AuthContext } from "@/utils/authContext";
+import { useRouter } from "expo-router";
+import { signOut } from "firebase/auth";
 import { useContext } from "react";
-import { Button, Text, View } from "react-native";
+import { Button, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
     const authState = useContext(AuthContext);
+    const router = useRouter();
+
+    function signout() {
+        signOut(auth)
+            .then(() => {
+                console.log("Successfully logged out");
+                router.replace("/login");
+            })
+            .catch((error) => {
+                console.log("Error signing out: ", error);
+            })
+    }
 
     return (
-        <View>
+        <SafeAreaView>
             <Text>Settings</Text>
-            <Button title="Log out" onPress={authState.logOut} />
-        </View>
+            <Button title="Log out" onPress={signout} />
+        </SafeAreaView>
         
     )
 }

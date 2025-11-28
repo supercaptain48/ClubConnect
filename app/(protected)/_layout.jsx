@@ -1,15 +1,14 @@
-import { AuthContext } from "@/utils/authContext";
-import { Redirect, Stack } from "expo-router";
-import { useContext } from "react";
-
-const isLoggedIn = false;
+import { UserContext } from "@/utils/userContext";
+import { Stack } from "expo-router";
+import { useState } from "react";
 
 export default function ProtectedLayout() {
-    const authState = useContext(AuthContext);
+    const [userData, setUserData] = useState(null);
 
-    if (!authState.isLoggedIn) {
-        return <Redirect href="/login" />
-    }
 
-    return <Stack screenOptions={{headerShown: false}} />
+    return (
+        <UserContext.Provider value={{ userData, setUserData }}>
+            <Stack screenOptions={{ headerShown: false }} />
+        </UserContext.Provider>
+    )
 }
