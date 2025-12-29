@@ -15,15 +15,19 @@ export default function AdminSetupScreen() {
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Generates a random 6 character code
     const generateRandomCode = () => {
+        // characters to choose from
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = '';
         for (let i = 0; i < 6; i++) {
+            // Pick a random character and append to result
             result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
         return result;
     }
 
+    // Handles creating a new school in the database
     async function handleCreateSchool() {
         setLoading(false);
         // If name or address isn't provided, return an error
@@ -45,20 +49,29 @@ export default function AdminSetupScreen() {
             querySnapshot.forEach((doc) => {
                 existingCodes.push(doc.id);
             })
+            // Creates a new code if it already exists in the database for another school
             while (existingCodes.includes(newCode)) {
                 newCode = generateRandomCode();
             }
+            // Create the new school document in the database once it finds a unique code
             await setDoc(doc(db, "schools", newCode), {
                 id: newCode,
                 name: name,
                 address: address,
-                adminID: userData.id
+                adminID: userData.id,
+                totalStudents: 0,
+                totalClubs: 0,
+                students: [],
+                clubs: [],
+                clubRequests: []
             })
+            // Update the user's schoolID field in the database with the new school's code
             await updateDoc(doc(db, "users", userData.id), {
                 schoolID: newCode
             })
+            // Redirect to the protected area once setup is complete
             setLoading(false);
-            router.replace("(tabs)");
+            router.replace("(protected)");
         } catch (err) {
             console.error("Error creating school:", err);
             setLoading(false);

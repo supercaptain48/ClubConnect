@@ -10,10 +10,11 @@ export default function ProtectedIndex() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const { userData, setUserData } = useContext(UserContext);
+    const { userData, setUserData, setSchoolData } = useContext(UserContext);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            // If no user is logged in, redirect to by setting user to null
             if (!user) {
                 setUser(null);
                 setLoading(false);
@@ -27,10 +28,11 @@ export default function ProtectedIndex() {
                 const docSnap = await getDoc(docRef);
                 
                 if (docSnap.exists()) {
+                    // Set user data in context if it exists
                     const data = docSnap.data();
                     setUserData(data);
                     
-                    // Check if school is set; if not, navigate to setup
+                    // Check if school is set in the database, and if it's not, navigate to setup based on role
                     if (!data.schoolID) {
                         if (data.role === "Student") {
                             router.replace("/studentSetup");
@@ -38,8 +40,18 @@ export default function ProtectedIndex() {
                             router.replace("/adminSetup");
                         }
                     } else {
-                        // School is set, go to main app
-                        router.replace("/(tabs)");
+                        // School is set, fetch school data and set the context, then go to main app based on role
+                        const schoolRef = doc(db, "schools", data.schoolID);
+                        const schoolSnap = await getDoc(schoolRef);
+                        if (schoolSnap.exists()) {
+                            setSchoolData(schoolSnap.data());
+                        }
+                        if (data.role === "Administrator") {
+                            router.replace("/(admin)")
+                        }
+                        else {
+                            router.replace("/(student)")
+                        }
                     }
                 }
             } catch (error) {

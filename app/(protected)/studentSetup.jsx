@@ -1,12 +1,14 @@
 import { app } from "@/firebaseConfig";
 import { UserContext } from "@/utils/userContext";
 import { useRouter } from "expo-router";
-import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, getFirestore, increment, updateDoc } from "firebase/firestore";
 import { useContext, useRef, useState } from "react";
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 export default function StudentSetupScreen() {
+    // State to hold the 6-digit school code
+    // It is stored in an array because the code is displayed as 6 separate inputs to the user (like a verification code)
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef([]);
     const router = useRouter();
@@ -15,9 +17,12 @@ export default function StudentSetupScreen() {
     const [noExistError, setNoExistError] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Handles the changes to each input
     const handleDigitChange = (value, index) => {
+        // Create a copy of the array
         const newCode = [...code];
 
+        // If user typed something
         if (value) {
             // Handle pasting a full code
             if (value.length === 6 && index === 0) {
@@ -45,6 +50,7 @@ export default function StudentSetupScreen() {
         }
     }
 
+    // Handles backspace key presses to move focus back (since it is 6 separate inputs)
     const handleKeyPress = ({ nativeEvent: { key } }, index) => {
         if (key === "Backspace") {
             if (code[index] === "" && index > 0) {
@@ -58,6 +64,8 @@ export default function StudentSetupScreen() {
         }
     }
 
+    // This function ensure that if the user taps on an input and there are inputs before it that are empty,
+    // it redirects the focus to the first empty input
     const handleFocus = (index) => {
         // Find the first empty field
         const firstEmptyIndex = code.findIndex(digit => !digit);
@@ -69,25 +77,38 @@ export default function StudentSetupScreen() {
         }
     }
 
+    // Handles submission of the school code
     const handleSubmit = async () => {
+        // Reset errors
         setIncompleteError(false);
         setNoExistError(false);
         const fullCode = code.join("");
+        // If the code is not complete, show an error
         if (fullCode.length !== 6) {
             setIncompleteError(true);
             return;
         }
 
+        // If the code is complete, check if it exists in the database
+        // Since it is loading data, show a loading symbol to the user
         setLoading(true);
         const db = getFirestore(app);
         const docSnap = await getDoc(doc(db, "schools", fullCode));
         if (docSnap.exists()) {
+            // If the school exists, update the user's schoolID field in the database
             await updateDoc(doc(db, "users", userData.id), {
                 schoolID: fullCode,
                 clubsJoined: []
             });
-            router.replace("(tabs)");
+            // Add the user to the school's list of students
+            await updateDoc(doc(db, "schools", fullCode), {
+                totalStudents: increment(1),
+                students: arrayUnion(userData.id)
+            })
+            // Redirect to the protected area
+            router.replace("(protected)");
         } else {
+            // If the school does not exist, show an error
             setNoExistError(true);
             setLoading(false);
             return;
@@ -101,6 +122,7 @@ export default function StudentSetupScreen() {
             {incompleteError && <Text className="text-red-500 font-bold mb-2">Full code required</Text>}
             {noExistError && <Text className="text-red-500 font-bold mb-2">Invalid code</Text>}
             <View className="flex-row gap-2">
+                {/* Go through each digit of the code and display it in a separate textInput in a row */}
                 {code.map((digit, index) => (
                     <TextInput 
                         key={index}

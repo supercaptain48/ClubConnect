@@ -1,4 +1,5 @@
 import { LoginInput } from "@/components/LoginInput";
+import { Selector } from "@/components/Selector";
 import { app, auth } from "@/firebaseConfig";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -8,18 +9,6 @@ import { useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-
-const RoleSelector = ({ role, selectedRole, setSelectedRole }) => {
-    return (
-        <TouchableOpacity 
-            className={`border-2 rounded-xl flex-1 py-6 ${selectedRole != role ? "border-gray-300" : ""}`}
-            onPress={() => setSelectedRole(role)}
-            activeOpacity={1}
-        >
-            <Text className="text-center font-bold">{role}</Text>
-        </TouchableOpacity>
-    )
-}
 
 export default function Signup() {
     const router = useRouter();
@@ -33,12 +22,15 @@ export default function Signup() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Error states that show up if the user input is invalid
     const [roleError, setRoleError] = useState(false);
     const [emailError, setEmailError] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [confirmError, setConfirmError] = useState(false);
 
+    // Special checks for ensuring that the password is strong enough 
+    // (at least 8 characters, contains uppercase, lowercase, number, and special character)
     const specialChars = /[`!@#$%^&*]/;
     const lowercase = /[a-z]/;
     const uppercase = /[A-Z]/;
@@ -46,14 +38,17 @@ export default function Signup() {
     const numbers = /\d/;
 
     function createAccount() {
+        // Reset all the error states before checking user input
         setRoleError(false);
         setEmailError(false);
         setNameError(false);
         setPasswordError(false);
         setConfirmError(false);
 
+        // If this becomes true, then there is an error and the function will return early
         let errorExists = false;
 
+        // Check all parts of the form to make sure the user input is valid
         if(!selectedRole) {
             setRoleError(true);
             errorExists = true;
@@ -75,6 +70,8 @@ export default function Signup() {
             errorExists = true;
         }
 
+        // If there is an error, return early and do not create the account
+        // By setting error states to be true, those error messages will then show on the screen
         if(errorExists) { 
             return; 
         }
@@ -84,7 +81,8 @@ export default function Signup() {
         const db = getFirestore(app);
         createUserWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
-                // Signed up
+                // If it gets here, then the account was created successfully
+                // Now add the user to the Firestore database
                 const user = userCredential.user;
                 await setDoc(doc(db, "users", user.uid), {
                     id: user.uid,
@@ -95,14 +93,11 @@ export default function Signup() {
                     createdAt: new Date()
                 })
                 
-                if (selectedRole == "Administrator") {
-                    router.replace("/adminSetup");
-                }
-                else {
-                    router.replace("/studentSetup")
-                }
+                // After successfully signing up and adding to the database, navigate to the protected area
+                router.replace("(protected)");
             })
             .catch((error) => {
+                // Handle errors here if account creation fails
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(errorCode, errorMessage)
@@ -112,16 +107,19 @@ export default function Signup() {
     return (
         <SafeAreaProvider>
             <SafeAreaView className="flex-1 justify-center bg-white">
+                {/* KeyboardAvoidingView is used instead of regular View to prevent the keyboard from covering inputs when it pops up */}
                 <KeyboardAvoidingView behavior="padding">
                     <ScrollView className="px-8" showsVerticalScrollIndicator={false}>
                         <Text className="text-4xl font-bold text-center text-green-600 mb-8">Create your account</Text>
-
+                        
                         <Text className="text-center font-bold text-xl mb-2">Choose your role</Text>
+                        {/* If createAccount() finds an error, then display that to the user (different error for each field) */}
                         {roleError && <Text className="text-center font-bold text-red-500 mb-1">Must select a role</Text>}
 
+                        {/* Flexbox to display it side by side */}
                         <View className="flex flex-row justify-center items-center gap-2 mb-6">  
-                            <RoleSelector role="Student" selectedRole={selectedRole} setSelectedRole={setSelectedRole} />
-                            <RoleSelector role="Administrator" selectedRole={selectedRole} setSelectedRole={setSelectedRole} />
+                            <Selector title="Student" selected={selectedRole} setSelected={setSelectedRole} />
+                            <Selector title="Administrator" selected={selectedRole} setSelected={setSelectedRole} />
                         </View>
                         
                         {emailError && <Text className="text-center font-bold text-red-500 mb-1">Must provide a valid email</Text>}
@@ -144,6 +142,7 @@ export default function Signup() {
                         }
                         <View className="relative w-full">
                             <LoginInput text="Password" onChangeText={setPassword} secureTextEntry={!showPassword} autoCapitalize="none" />
+                            {/* Eye icon to show/hide password */}
                             <TouchableOpacity 
                                 className="absolute inset-y-0 right-3 z-10 items-center justify-center" 
                                 onPress={() => setShowPassword(!showPassword)}

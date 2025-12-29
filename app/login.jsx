@@ -16,6 +16,9 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(false);
 
+    // Function to handle login
+    // After logging in, redirect to the protected area
+    // If there's an error, set the error state to true to display an error message
     function login() {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
@@ -27,6 +30,7 @@ export default function LoginScreen() {
     }
 
     return (
+        // KeyboardAvoidingView is used instead of regular View to prevent the keyboard from covering inputs when it pops up
         <KeyboardAvoidingView className="flex-1 justify-center bg-white px-8" behavior="padding">
             <Text className="text-center font-bold text-3xl">Welcome to</Text>
             <Text className="text-5xl font-bold text-center text-green-600 mb-8">ClubConnect</Text>

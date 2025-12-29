@@ -2,6 +2,7 @@ import { AuthProvider } from "@/utils/authContext";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import Toast from "react-native-toast-message";
 import "../global.css";
 
 export default function RootLayout() {
@@ -31,6 +32,8 @@ export default function RootLayout() {
           />
         </Stack>
       </AuthProvider>
+
+      <Toast />
     </KeyboardProvider>
     
   );

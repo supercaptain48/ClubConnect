@@ -1,5 +1,8 @@
 import { Text, TextInput, View } from "react-native";
 
+// A reusable input component for login and signup screens
+// This component is also used in other forms like creating a club
+// It displays a label and a text input together
 export const LoginInput = ({ text, label, ...props }) => {
     return (
         <View>
