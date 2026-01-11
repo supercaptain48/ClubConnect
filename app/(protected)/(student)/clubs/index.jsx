@@ -7,15 +7,17 @@ import { collection, doc, getDocs, getFirestore, onSnapshot, query, where } from
 import { useContext, useEffect, useState } from "react";
 import { FlatList, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
+import { RenderClub } from "@/components/RenderClub";
 
 export default function ClubsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const navigation = useNavigation();
     const [clubsJoined, setClubsJoined] = useState([]);
-    const { userData } = useContext(UserContext);
+    const { userData, setUserData } = useContext(UserContext);
     const db = getFirestore(app);
     const [clubsRequested, setClubsRequested] = useState([]);
+    const [myClubs, setMyClubs] = useState([]);
 
     // Toast message that will show on the top of the screen as a message to the user
     const showClubRequestToast = () => {
@@ -49,6 +51,8 @@ export default function ClubsScreen() {
                 })
 
                 setClubsJoined(joined);
+            } else {
+                setClubsJoined([]);
             }
 
             const requestedCodes = updatedUserData.clubsRequested || [];
@@ -63,6 +67,24 @@ export default function ClubsScreen() {
                 })
 
                 setClubsRequested(requested);
+            } else {
+                setClubsRequested([]);
+            }
+
+            const myClubsCodes = updatedUserData.myClubs || [];
+            if (myClubsCodes.length > 0) {
+                // Going through each club in the database, if the club ID is in the list of codes, get it
+                const q = query(collection(db, "clubs"), where("id", "in", myClubsCodes));
+                const querySnapshot = await getDocs(q);
+
+                const mine = [];
+                querySnapshot.forEach((doc) => {
+                    mine.push(doc.data());
+                })
+
+                setMyClubs(mine);
+            } else {
+                setMyClubs([]);
             }
         }
         
@@ -72,6 +94,7 @@ export default function ClubsScreen() {
             async (snapshot) => {
                 const updatedUserData = snapshot.data();
                 if (updatedUserData) {
+                    setUserData(updatedUserData);
                     fetchData(updatedUserData);
                 }
             }
@@ -91,50 +114,51 @@ export default function ClubsScreen() {
         return result;
     }
 
-    const RenderClub = ({ club }) => {
-        return (
-            <TouchableOpacity 
-                className="w-80 justify-center items-center px-4 py-2 border-gray-200 mb-2 flex-row" 
-                activeOpacity={0.7}
-            >
-                <Image 
-                    source={club.imageURL ? { uri: club.imageURL } : { uri: 'https://blocks.astratic.com/img/general-img-landscape.png' }}
-                    style={{
-                        width: 75,
-                        height: 75,
-                        borderRadius: 6,
-                        backgroundColor: "#eee",
-                        alignSelf: "center",
-                    }}
-                />
-                <View className="flex-1 ml-4">
-                    <Text className="text-xl font-bold">{club.name}</Text>
-                    <Text className="text-gray-500">{club.members.length} members</Text>
-                </View>
-            </TouchableOpacity>
-        )
-        
-    }
-
     return (
         <ScrollView 
             className="bg-white flex-1"
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32 }} 
             showsVerticalScrollIndicator={false}
         >
-            <View className="flex-row justify-center items-center mt-4 gap-6">
-                <TouchableOpacity className="flex-1 mt-4 mb-8 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" activeOpacity={0.7}>
+            <View className="flex-row justify-center items-center gap-6">
+                <TouchableOpacity 
+                    className="flex-1 mt-4 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" 
+                    activeOpacity={0.7}
+                    onPress={() => router.push("(student)/clubs/joinClub")}
+                >
                     <Text className="text-white font-bold">Join with code</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                    className="flex-1 mt-4 mb-8 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" 
+                    className="flex-1 mt-4 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" 
                     activeOpacity={0.7}
                     onPress={() => router.push("(student)/clubs/createClub")}
                 >
                     <Text className="text-white font-bold">Create a club</Text>
                 </TouchableOpacity>
             </View>
+
+            <TouchableOpacity 
+                className=" mt-4 mb-8 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" 
+                activeOpacity={0.7}
+                onPress={() => router.push("(student)/clubs/browseClubs")}
+            >
+                <Text className="text-white font-bold">Browse All Clubs</Text>
+            </TouchableOpacity>
+
+            {myClubs.length > 0 && 
+                <View className="bg-green-500 rounded-3xl p-4 mb-4 items-center">
+                    <Text className="text-white font-bold text-3xl w-full mb-2">My Clubs</Text>
+                    <FlatList 
+                        data={myClubs}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => <RenderClub key={item.id} club={item} onPress={() => router.push(`(student)/clubs/${item.id}`)} />}
+                        scrollEnabled={false}
+                        className="w-full"
+                        contentContainerStyle={{ paddingVertical: 16, backgroundColor: "white", borderRadius: 12 }}
+                    />
+                </View>
+            }
 
             {clubsRequested.length > 0 && (
                 <>
@@ -154,36 +178,34 @@ export default function ClubsScreen() {
                             )}
                             horizontal={true}
                             showsHorizontalScrollIndicator={false}
+                            className="w-full"
                             contentContainerStyle={{ paddingVertical: 16 }}
                         />
                     </Box>
                 </>
             )}
             
-            <Text className="text-xl font-bold mt-4">My Clubs</Text>
+            <Text className="text-xl font-bold mt-4">Clubs Joined</Text>
             <Box>
-                <FlatList 
-                    data={chunkArray(clubsJoined, 2)}
-                    keyExtractor={(item, index) => `col-${index}`}
-                    renderItem={({ item }) => (
-                        // Each item is an array of clubs (2 clubs per array)
-                        // Render each club in the array vertically stacked
-                        <View className="mr-4">
-                            {item.map((club) => (
-                                <RenderClub key={club.id} club={club} />
-                            ))}
-                        </View>                        
-                    )}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingVertical: 16 }}
-                />
-            </Box>
-
-            <Text className="mt-16 text-xl font-bold">Browse All Clubs</Text>
-
-            <Box>
-                <Text>No clubs available</Text>
+                {clubsJoined.length > 0 ? 
+                    <FlatList 
+                        data={chunkArray(clubsJoined, 3)}
+                        keyExtractor={(item, index) => `col-${index}`}
+                        renderItem={({ item }) => (
+                            // Each item is an array of clubs (2 clubs per array)
+                            // Render each club in the array vertically stacked
+                            <View className="mr-4">
+                                {item.map((club) => (
+                                    <RenderClub key={club.id} club={club} onPress={() => router.push(`(student)/clubs/${club.id}`)} />
+                                ))}
+                            </View>                        
+                        )}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        className="w-full"
+                        contentContainerStyle={{ paddingVertical: 16 }}
+                    /> : <Text>No clubs joined</Text>
+                }
             </Box>
         </ScrollView>
     )

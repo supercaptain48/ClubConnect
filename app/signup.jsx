@@ -9,6 +9,8 @@ import { useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 
 export default function Signup() {
     const router = useRouter();
@@ -21,6 +23,7 @@ export default function Signup() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imageURL, setimageURL] = useState();
 
     // Error states that show up if the user input is invalid
     const [roleError, setRoleError] = useState(false);
@@ -28,6 +31,7 @@ export default function Signup() {
     const [nameError, setNameError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [confirmError, setConfirmError] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     // Special checks for ensuring that the password is strong enough 
     // (at least 8 characters, contains uppercase, lowercase, number, and special character)
@@ -37,6 +41,52 @@ export default function Signup() {
     // \d metacharacter matches any digit (0-9)
     const numbers = /\d/;
 
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            return result.assets[0].uri;
+        }
+
+        return null;
+    }
+
+    const uploadToCloudinary = async (uri) => {
+        const data = new FormData();
+
+        data.append("file", {
+            uri,
+            type: "image/jpeg",
+            name: "profile.jpg",
+        });
+
+        data.append("upload_preset", "profile_pictures");
+
+        const res = await fetch(
+            "https://api.cloudinary.com/v1_1/dptnmralr/image/upload",
+            {
+                method: "POST",
+                body: data,
+            }
+        );
+
+        const json = await res.json();
+        return json.secure_url;
+    }
+
+    const changePicture = async () => {
+        const uri = await pickImage();
+        if (!uri) return;
+
+        const url = await uploadToCloudinary(uri);
+        setimageURL(url);
+    }
+
     function createAccount() {
         // Reset all the error states before checking user input
         setRoleError(false);
@@ -44,6 +94,7 @@ export default function Signup() {
         setNameError(false);
         setPasswordError(false);
         setConfirmError(false);
+        setImageError(false);
 
         // If this becomes true, then there is an error and the function will return early
         let errorExists = false;
@@ -51,6 +102,10 @@ export default function Signup() {
         // Check all parts of the form to make sure the user input is valid
         if(!selectedRole) {
             setRoleError(true);
+            errorExists = true;
+        }
+        if (!imageURL) {
+            setImageError(true);
             errorExists = true;
         }
         if(!email.includes("@") || !email.includes(".")) {
@@ -90,7 +145,8 @@ export default function Signup() {
                     lastName: lastName,
                     email: email,
                     role: selectedRole,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    imageURL: imageURL,
                 })
                 
                 // After successfully signing up and adding to the database, navigate to the protected area
@@ -110,7 +166,7 @@ export default function Signup() {
                 {/* KeyboardAvoidingView is used instead of regular View to prevent the keyboard from covering inputs when it pops up */}
                 <KeyboardAvoidingView behavior="padding">
                     <ScrollView className="px-8" showsVerticalScrollIndicator={false}>
-                        <Text className="text-4xl font-bold text-center text-green-600 mb-8">Create your account</Text>
+                        <Text className="text-4xl font-bold text-center text-green-500 mb-8">Create your account</Text>
                         
                         <Text className="text-center font-bold text-xl mb-2">Choose your role</Text>
                         {/* If createAccount() finds an error, then display that to the user (different error for each field) */}
@@ -121,6 +177,36 @@ export default function Signup() {
                             <Selector title="Student" selected={selectedRole} setSelected={setSelectedRole} />
                             <Selector title="Administrator" selected={selectedRole} setSelected={setSelectedRole} />
                         </View>
+
+                        {imageError && <Text className="text-center font-bold text-red-500 mb-1">Image required</Text>}
+                        {imageURL ? 
+                            <View className="mb-6">
+                                <Image 
+                                    source={{ uri: imageURL }}
+                                    style={{
+                                        width: 100,
+                                        height: 100,
+                                        borderRadius: 48,
+                                        backgroundColor: "#eee",
+                                        alignSelf: "center",
+                                    }}
+                                />
+                                <TouchableOpacity 
+                                    className="justify-center items-center mt-2 mx-auto bg-green-500 px-3 py-2 rounded-xl" 
+                                    activeOpacity={0.7}
+                                    onPress={changePicture}
+                                >
+                                    <Text className="text-white font-bold text-sm">Change profile picture</Text>
+                                </TouchableOpacity>
+                            </View> :
+                            <TouchableOpacity 
+                                className="justify-center items-center mb-6 mx-auto bg-green-500 px-3 py-2 rounded-xl" 
+                                activeOpacity={0.7}
+                                onPress={changePicture}
+                            >
+                                <Text className="text-white font-bold text-sm">Add profile picture</Text>
+                            </TouchableOpacity>
+                        }
                         
                         {emailError && <Text className="text-center font-bold text-red-500 mb-1">Must provide a valid email</Text>}
                         <LoginInput text="Email" onChangeText={setEmail} autoCapitalize="none" inputMode="email" />

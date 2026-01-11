@@ -11,6 +11,7 @@ import { useContext, useLayoutEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BackButton } from "@/components/BackButton";
 
 export default function CreateClubScreen() {
     const navigation = useNavigation();
@@ -25,20 +26,6 @@ export default function CreateClubScreen() {
     const [loading, setLoading] = useState(false);
     const [imageURL, setimageURL] = useState();
     const [imageError, setImageError] = useState(false);
-
-    // Hides the bottom tab bar when this screen is opened, as it is not one of the tabs
-    // In order for the tab bar to show again when exiting this screen, it returns a function setting that makes it visible again
-    useLayoutEffect(() => {
-        navigation.getParent()?.setOptions({
-            tabBarStyle: { display: 'none' }
-        })
-
-        return () => {
-            navigation.getParent()?.setOptions({
-                tabBarStyle: { display: 'flex' }
-            })
-        }
-    }, [navigation])
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -171,21 +158,13 @@ export default function CreateClubScreen() {
     }
 
     return (
-        <SafeAreaView className="bg-white flex-1 px-6 justify-center"> 
+        <View className="bg-white flex-1 px-6 pt-6 justify-center"> 
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
                 showsVerticalScrollIndicator={false}
             >
                 <KeyboardAvoidingView className="flex-1 justify-center" behavior="padding">
-                    {/* Back button */}
-                    <TouchableOpacity 
-                        className="absolute top-2 flex-row justify-center items-center gap-1"
-                        activeOpacity={0.7}
-                        onPress={() => router.back()}
-                    >
-                        <Ionicons name="arrow-back" size={18} color={"black"} />
-                        <Text className="font-bold">Back</Text>
-                    </TouchableOpacity>
+                    <BackButton pos="absolute top-2" />
 
                     <Text className="font-bold text-3xl text-green-500 text-center">Request a New Club</Text>
 
@@ -245,6 +224,6 @@ export default function CreateClubScreen() {
                 </KeyboardAvoidingView>
             </ScrollView>
             
-        </SafeAreaView>
+        </View>
     )
 }

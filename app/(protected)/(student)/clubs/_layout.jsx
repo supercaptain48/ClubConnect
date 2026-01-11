@@ -19,6 +19,7 @@ export default function ClubsLayout() {
                 }}
             />
             <Stack.Screen name="createClub" />
+            <Stack.Screen name="browseClubs" />
         </Stack>
     )
 }

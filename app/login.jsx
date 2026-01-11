@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useContext, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 export default function LoginScreen() {
@@ -15,17 +15,20 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Function to handle login
     // After logging in, redirect to the protected area
     // If there's an error, set the error state to true to display an error message
     function login() {
+        setLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 router.replace("/")
             })
             .catch((error) => {
                 setError(true);
+                setLoading(false);
             })
     }
 
@@ -33,7 +36,7 @@ export default function LoginScreen() {
         // KeyboardAvoidingView is used instead of regular View to prevent the keyboard from covering inputs when it pops up
         <KeyboardAvoidingView className="flex-1 justify-center bg-white px-8" behavior="padding">
             <Text className="text-center font-bold text-3xl">Welcome to</Text>
-            <Text className="text-5xl font-bold text-center text-green-600 mb-8">ClubConnect</Text>
+            <Text className="text-5xl font-bold text-center text-green-500 mb-8">ClubConnect</Text>
 
             {error && <Text className="text-center font-bold text-red-500 mb-1">Email or password is incorrect</Text>}
             <LoginInput text="Email" onChangeText={setEmail} autoCapitalize="none" inputMode="email" />
@@ -51,6 +54,13 @@ export default function LoginScreen() {
                     />
                 </TouchableOpacity>
             </View>
+            <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => router.push("/forgotPassword")}
+            >
+                <Text className="font-bold text-green-500 -mt-3 mb-6">Forgot password?</Text>
+            </TouchableOpacity>
+            
             
 
             <TouchableOpacity 
@@ -58,7 +68,7 @@ export default function LoginScreen() {
                 activeOpacity={0.7}
                 onPress={login}
             >
-                <Text className="font-bold text-lg text-white">Login</Text>
+                {loading ? <ActivityIndicator color="white" /> : <Text className="font-bold text-lg text-white">Login</Text>}
             </TouchableOpacity>
 
             <Text className="text-center font-bold text-2xl my-4">or</Text>

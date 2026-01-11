@@ -1,4 +1,4 @@
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
@@ -39,10 +39,11 @@ export default function TabLayout() {
                 }} 
             />
             <Tabs.Screen 
-                name="settings" 
+                name="profile" 
                 options={{ 
-                    title: "Settings", 
-                    tabBarIcon: ({ color }) => <Ionicons size={22} name="settings" color={color} />
+                    title: "Profile", 
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <FontAwesome size={22} name="user-circle" color={color} />
                 }} 
             />
         </Tabs>

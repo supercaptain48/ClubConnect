@@ -123,7 +123,7 @@ export default function AdminClubsScreen() {
             // Move club from users who requested it to approved
             club.leaders.forEach(async (uid) => {
                 await updateDoc(doc(db, "users", uid), {
-                    clubsJoined: arrayUnion(club.id),
+                    myClubs: arrayUnion(club.id),
                     clubsRequested: arrayRemove(club.id)
                 })
             })
@@ -162,10 +162,11 @@ export default function AdminClubsScreen() {
             showDeniedToast();
         }
 
+
         return (
             <View>
                 <TouchableOpacity 
-                    className="w-full justify-center items-center px-4 py-2 border-b border-gray-200 mb-2 flex-row" 
+                    className="w-80 justify-center items-center px-4 py-2 mb-2 flex-row" 
                     activeOpacity={0.7}
                     onPress={() => {
                         // If this component is being used for pending club approvals, show the modal where the club can be approved or denied
@@ -192,7 +193,7 @@ export default function AdminClubsScreen() {
                     />
                     <View className="flex-1 ml-4">
                         <Text className="text-xl font-bold">{club.name}</Text>
-                        <Text>{leaderNames.join(", ")}</Text>
+                        <Text className="text-gray-500">{club.members.length} members</Text>
                     </View>
                 </TouchableOpacity>
 
@@ -249,19 +250,18 @@ export default function AdminClubsScreen() {
         )
     }
 
-    return (
-        <View className="bg-white flex-1 px-7">
-            <View className="flex-row justify-center items-center gap-6">
-                <TouchableOpacity 
-                    className="flex-1 mt-4 mb-8 bg-green-500 rounded-xl px-4 py-3 items-center justify-center" 
-                    activeOpacity={0.7}
-                    onPress={() => router.push("(admin)/clubs/createClub")}
-                >
-                    <Text className="text-white font-bold">Create a club</Text>
-                </TouchableOpacity>
-            </View>
-            
+    // Split the list of clubs so that it can have a sideways scroll with given size in each column
+    const chunkArray = (array, size) => {
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+        }
 
+        return result;
+    }
+
+    return (
+        <View className="bg-white flex-1 px-7 pb-4">          
             <Text className="text-xl font-bold">Pending Club Approvals</Text>
             <Box height="64">
                 {clubRequests.length > 0 ? 
@@ -269,6 +269,7 @@ export default function AdminClubsScreen() {
                         data={clubRequests}
                         renderItem={({ item }) => (
                             <Animated.View
+                                key={item.id}
                                 layout={LinearTransition.springify()}
                                 exiting={SlideOutRight}
                             >
@@ -298,19 +299,26 @@ export default function AdminClubsScreen() {
             <Box>
                 {clubs.length > 0 ? 
                     <FlatList 
-                        data={clubs}
+                        data={chunkArray(clubs, 3)}
                         renderItem={({ item }) => (
                             <Animated.View
+                                key={item.map(c => c.id).join(',')}
                                 layout={LinearTransition.springify()}
                                 exiting={SlideOutRight}
                             >
-                                <ClubItem club={item} type="club" />
+                                <View className="mr-4">
+                                    {item.map((club) => (
+                                        <ClubItem key={club.id} club={club} type="club" />
+                                    ))}
+                                </View>  
                             </Animated.View>
                             
                         )}
-                        keyExtractor={item => item.id}
+                        keyExtractor={(item, index) => item.map(c => c.id).join(',')}
                         showsVerticalScrollIndicator={false}
                         className="w-full"
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ paddingVertical: 16, paddingHorizontal: 10 }}
                     /> : 
                     <Text className="text-center">No existing clubs</Text>}

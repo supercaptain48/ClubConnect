@@ -1,10 +1,11 @@
 import { app } from "@/firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RenderClub } from "@/components/RenderClub";
 
 export default function AdminAllClubsScreen() {
     const navigation = useNavigation();
@@ -12,58 +13,7 @@ export default function AdminAllClubsScreen() {
     const clubs = params.clubs ? JSON.parse(params.clubs) : [];
     const [filteredData, setFilteredData] = useState(clubs);
     const [search, setSearch] = useState("");
-
-    // Hides the bottom tab bar when this screen is opened, as it is not one of the tabs
-    // In order for the tab bar to show again when exiting this screen, it returns a function setting that makes it visible again
-    useLayoutEffect(() => {
-        navigation.getParent()?.setOptions({
-            tabBarStyle: { display: 'none' },
-        })
-
-        return () => {
-            navigation.getParent()?.setOptions({
-                tabBarStyle: { display: 'flex' },
-            })
-        }
-    }, [navigation])
-
-    const ClubItem = ({ club }) => {
-        const [leaderNames, setLeaderNames] = useState([]);
-
-        useEffect(() => {
-            const fetchLeaderNames = async () => {
-                const db = getFirestore(app);
-                if (!club?.leaders || club.leaders.length === 0) {
-                    setLeaderNames([]);
-                    return;
-                }
-
-                const userPromises = club.leaders.map(uid => {
-                    const docRef = doc(db, "users", uid);
-                    return getDoc(docRef);
-                });
-
-                const userDocs = await Promise.all(userPromises);
-                const names = userDocs
-                    .filter(docSnap => docSnap.exists())
-                    .map(docSnap => `${docSnap.data().firstName} ${docSnap.data().lastName}`);
-
-                setLeaderNames(names);
-            }
-
-            fetchLeaderNames();
-        }, [club?.leaders]);
-
-        return (
-            <TouchableOpacity 
-                className="w-full justify-center px-4 py-2 border-b border-gray-200 mb-2" 
-                activeOpacity={0.7}
-            >
-                <Text className="text-xl font-bold">{club.name}</Text>
-                <Text>{leaderNames.join(", ")}</Text>
-            </TouchableOpacity>
-        )
-    }
+    const router = useRouter();
 
     const handleSearch = (text) => {
         setSearch(text);
@@ -80,7 +30,7 @@ export default function AdminAllClubsScreen() {
     }
 
     return (
-        <SafeAreaView className="bg-white flex-1 px-7 py-4">
+        <SafeAreaView className="bg-white flex-1 px-7" edges={['top', 'left', 'right']}>
             <Text className="text-3xl font-bold text-green-500">All Clubs</Text>
 
             <View className="flex-row items-center justify-center mt-4 border border-gray-400 rounded-3xl px-3 py-1 mb-6">
@@ -102,7 +52,7 @@ export default function AdminAllClubsScreen() {
                         //     layout={LinearTransition.springify()}
                         //     exiting={SlideOutRight}
                         // >
-                            <ClubItem club={item} />
+                            <RenderClub club={item} onPress={() => router.push(`/(admin)/clubs/${item.id}`)} />
                         // </Animated.View>
                         
                     )}

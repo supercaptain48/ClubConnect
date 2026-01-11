@@ -1,4 +1,4 @@
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { FontAwesome, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function AdminTabsLayout() {
@@ -15,11 +15,10 @@ export default function AdminTabsLayout() {
             headerShadowVisible: false,
         }}>
             <Tabs.Screen 
-                name="index" 
+                name="(home)" 
                 options={{ 
                     title: "Home",
-                    headerTitle: "ClubConnect",
-                    headerShadowVisible: false,
+                    headerShown: false,
                     tabBarIcon: ({ color }) => <Ionicons size={22} name="home" color={color} />
                 }} 
             />
@@ -29,6 +28,22 @@ export default function AdminTabsLayout() {
                     title: "Clubs", 
                     headerShown: false,
                     tabBarIcon: ({ color }) => <FontAwesome size={22} name="group" color={color} />
+                }} 
+            />
+            <Tabs.Screen 
+                name="students" 
+                options={{ 
+                    title: "Students", 
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <FontAwesome5 size={22} name="user-graduate" color={color} />
+                }} 
+            />
+            <Tabs.Screen 
+                name="settings" 
+                options={{ 
+                    title: "Settings", 
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <FontAwesome5 size={22} name="cog" color={color} />
                 }} 
             />
         </Tabs>
