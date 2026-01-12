@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import { Image } from "expo-image";
 
-export const RenderMember = ({ member }) => {
+export const RenderMember = ({ member, isLeader }) => {
     return (
         <View className="flex-row mb-4 items-center justify-center">
             <Image 
@@ -17,6 +17,7 @@ export const RenderMember = ({ member }) => {
             <View className="flex-1 ml-4">
                 <Text className="font-bold text-xl">{member.firstName + " " + member.lastName}</Text>
                 <Text className="text-gray-500">{member.email}</Text>
+                {isLeader ? <Text className="text-green-500 font-bold">Leader</Text> : null}
             </View>
         </View>
     )

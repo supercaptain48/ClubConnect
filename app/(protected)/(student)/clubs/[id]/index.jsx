@@ -1,7 +1,7 @@
 import { app } from "@/firebaseConfig";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { arrayRemove, arrayUnion, collection, doc, getDoc, getFirestore, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getFirestore, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,39 +31,44 @@ export default function ClubPage() {
     const [joinLoading, setJoinLoading] = useState(false);
 
     useEffect(() => {
+        const q = query(collection(db, "clubs", params.id, "events"), orderBy("startDate", "desc"));
         let club = {};
-        const unsubscribe = onSnapshot(doc(db, "clubs", params.id), (doc) => {
-            club = doc.data();
-            setClub(club);
+        const unsubscribeEvents = onSnapshot(q, async (snapshot) => {
+            // Get club details
+            const clubSnap = await getDoc(doc(db, "clubs", params.id));
+            club = clubSnap.data();
+            setClub(clubSnap.data());
 
             // Sort events by date and filter to only upcoming events
-            if (club?.events) {
-                const now = new Date();
+            const now = new Date();
 
-                const events = [...club.events].sort(
-                    (a, b) => a.startDate.toDate() - b.startDate.toDate()
-                ).map(e => ({...e, clubName: club.name}))
+            // Get events from snapshot
+            const events = snapshot.docs
+                .map(doc => ({ 
+                    ...doc.data(), 
+                    clubName: club.name, 
+                    id: doc.id 
+                }))
                 .filter(e => e.startDate.toDate() >= now)
                 .sort((a, b) => a.startDate.toDate() - b.startDate.toDate());
 
-                // Only show toast if event count increased (and it's not the first load)
-                if (prevEventCountRef.current !== -1 && events.length > prevEventCountRef.current) {
-                    eventCreatedToast();
-                }
-
-                // Track the event count
-                prevEventCountRef.current = events.length;
-
-                setEvents(events);
+            // Only show toast if event count increased (and it's not the first load)
+            if (prevEventCountRef.current !== -1 && events.length > prevEventCountRef.current) {
+                eventCreatedToast();
             }
+
+            // Track the event count
+            prevEventCountRef.current = events.length;
+
+            setEvents(events);
         })
 
-        const q = query(
+        const q2 = query(
             collection(db, "clubs", params.id, "announcements"),
             orderBy("createdAt", "desc")
         );
 
-        const unsubscribe2 = onSnapshot(q, (snapshot) => {
+        const unsubscribeAnnouncements = onSnapshot(q2, (snapshot) => {
             const announcements = snapshot.docs.map(doc => ({
                 id: doc.id,
                 clubName: club.name,
@@ -74,7 +79,7 @@ export default function ClubPage() {
         })
 
         // Clean up listener on unmount
-        return () => (unsubscribe(), unsubscribe2());
+        return () => (unsubscribeEvents(), unsubscribeAnnouncements());
     }, [])
 
     const eventCreatedToast = () => {
@@ -85,9 +90,7 @@ export default function ClubPage() {
 
     const deleteEvent = async (event) => {
         delete event.clubName;
-        await updateDoc(doc(db, "clubs", club.id), {
-            events: arrayRemove(event)
-        })
+        await deleteDoc(doc(db, "clubs", club.id, "events", event.id));
     }
     
     const handleLeaveClub = async () => {
@@ -145,6 +148,7 @@ export default function ClubPage() {
                             >
                                 {leaveLoading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-sm">Leave Club</Text>}
                             </TouchableOpacity> : 
+                        userData?.myClubs?.includes(clubId) ? null :
                             <TouchableOpacity 
                                 className="bg-green-500 px-3 py-1 rounded-xl ml-4"
                                 activeOpacity={0.7}
@@ -165,6 +169,17 @@ export default function ClubPage() {
                         <Text className="text-white font-bold flex-1">View members</Text>
                         <AntDesign name="right" size={16} color="white" />
                     </TouchableOpacity>
+
+                    {userData?.myClubs?.includes(clubId) || userData?.clubsJoined?.includes(clubId) && 
+                    <TouchableOpacity
+                        className="bg-green-500 px-3 py-2 rounded-xl flex-row items-center justify-center -mt-2 mb-6"
+                        activeOpacity={0.7}
+                        onPress={() => router.push(`/(student)/clubs/${clubId}/viewPastEvents`)}
+                    >
+                        <Text className="text-white font-bold flex-1">View past events</Text>
+                        <AntDesign name="right" size={16} color="white" />
+                    </TouchableOpacity>
+                    }
 
                     <View className="flex-row items-center mt-8 mb-4">
                         <Text className="text-xl font-bold flex-1">Upcoming Events</Text>

@@ -8,6 +8,8 @@ export default function IDLayout() {
         }}>
             <Stack.Screen name="index" options={{ title: "" }} />
             <Stack.Screen name="members" options={{ title: "Members" }} />
+            <Stack.Screen name="viewPastEvents" options={{ title: "Past Events" }} />
+            <Stack.Screen name="viewEvent" options={{ title: "" }} />
         </Stack>
     )
 }

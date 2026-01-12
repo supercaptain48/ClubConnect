@@ -15,11 +15,10 @@ export default function TabLayout() {
             tabBarActiveTintColor: "#22c55e" 
         }}>
             <Tabs.Screen 
-                name="index" 
+                name="(home)" 
                 options={{ 
-                    headerShown: true,
+                    headerShown: false,
                     title: "Home",
-                    headerTitle: "ClubConnect",
                     tabBarIcon: ({ color }) => <Ionicons size={22} name="home" color={color} />
                 }} 
             />

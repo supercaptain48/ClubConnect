@@ -20,9 +20,14 @@ export default function ViewMembersScreen() {
             async (snapshot) => {
                 const club = snapshot.data();
 
+                // Fetch leader details
+                const q2 = query(collection(db, "users"), where("id", "in", club.leaders));
+                const querySnapshot2 = await getDocs(q2);
+                const leadersData = querySnapshot2.docs.map(doc => ({ ...doc.data(), leader: true }));
+
                 // Handle empty members list
                 if (!club?.members || club.members.length === 0) {
-                    setMembers([]);
+                    setMembers(leadersData);
                     return;
                 }
 
@@ -31,7 +36,8 @@ export default function ViewMembersScreen() {
                 const querySnapshot = await getDocs(q);
                 const memberData = querySnapshot.docs.map(doc => doc.data());
                 
-                setMembers(memberData);
+                // Combine leaders and members
+                setMembers([...leadersData, ...memberData]);
             }
         )        
 
@@ -64,9 +70,9 @@ export default function ViewMembersScreen() {
                     >
                         <View className="flex-row items-center justify-center">
                             <View className="flex-1">
-                                <RenderMember member={item} />
+                                <RenderMember member={item} isLeader={item.leader} />
                             </View>
-                            {userData.myClubs?.includes(params.id) && 
+                            {(userData.myClubs?.includes(params.id) && !item.leader) && 
                                 <TouchableOpacity
                                     className="bg-red-500 px-3 py-1 rounded-xl"
                                     activeOpacity={0.7}

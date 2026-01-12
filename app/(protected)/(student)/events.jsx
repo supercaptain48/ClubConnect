@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Calendar, CalendarList } from "react-native-calendars";
 import { UserContext } from "@/utils/userContext";
-import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, getFirestore } from "firebase/firestore";
 import { app } from "@/firebaseConfig";
 import { EventCard } from "@/components/EventCard";
 
@@ -23,22 +23,20 @@ export default function EventsScreen() {
             // Fetch events from user's clubs
             if (userData.myClubs) {
                 for (const id of userData.myClubs) {
-                    const docSnap = await getDoc(doc(db, "clubs", id));
-                    const club = docSnap.data();
-                    if (club?.events) {
-                        allEvents.push(...club.events.map(e => ({...e, clubName: club.name})));
-                    }
+                    const snapshot = await getDocs(collection(db, "clubs", id, "events"));
+                    const clubDoc = await getDoc(doc(db, "clubs", id));
+                    const club = clubDoc.data();
+                    allEvents.push(...snapshot.docs.map(doc => ({...doc.data(), clubName: club.name})));
                 }
             }
 
             // Fetch events from clubs the user has joined
             if (userData.clubsJoined) {
                 for (const id of userData.clubsJoined) {
-                    const docSnap = await getDoc(doc(db, "clubs", id));
-                    const club = docSnap.data();
-                    if (club?.events) {
-                        allEvents.push(...club.events.map(e => ({...e, clubName: club.name})));
-                    }
+                    const snapshot = await getDocs(collection(db, "clubs", id, "events"));
+                    const clubDoc = await getDoc(doc(db, "clubs", id));
+                    const club = clubDoc.data();
+                    allEvents.push(...snapshot.docs.map(doc => ({...doc.data(), clubName: club.name})));
                 }
             }
 

@@ -4,7 +4,7 @@ import { LoginInput } from "@/components/LoginInput";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useState } from "react";
 import DatePicker from "react-native-date-picker";
-import { arrayUnion, doc, getFirestore, updateDoc } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getFirestore, updateDoc } from "firebase/firestore";
 import app from "@/firebaseConfig";
 
 export default function CreateEventScreen() {
@@ -48,6 +48,27 @@ export default function CreateEventScreen() {
         )
     }
 
+    // Generates a random 6 character code
+    const generateRandomCode = () => {
+        // characters to choose from
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            // Pick a random character and append to result
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    }
+
+    // Create check-in window 10 minutes before and 30 minutes after event start time
+    const createCheckInWindow = (date) => {
+        const d = new Date(date);
+        const opensAt = new Date(d.getTime() - 10 * 60 * 1000);
+        const closesAt = new Date(d.getTime() + 30 * 60 * 1000);
+
+        return { opensAt, closesAt };
+    }
+
     const handleSubmit = async () => {
         let errorExists = false;
         setNameError(false);
@@ -63,14 +84,20 @@ export default function CreateEventScreen() {
 
         setLoading(true);
 
-        await updateDoc(doc(db, "clubs", params.id), {
-            events: arrayUnion({
-                name: name,
-                startDate: startDate,
-            })
+        const { opensAt, closesAt } = createCheckInWindow(startDate);
+
+        await addDoc(collection(db, "clubs", params.id, "events"), {
+            name: name,
+            startDate: startDate,
+            checkInOpensAt: opensAt, 
+            checkInClosesAt: closesAt,
+            code: generateRandomCode(),
+            createdAt: new Date(),
+            clubId: params.id
         })
 
         router.back();
+        setLoading(false);
     }
 
     return (

@@ -152,13 +152,6 @@ export default function ProfileScreen() {
                 >
                     <Text className="text-white font-bold">Logout</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                    className="bg-red-800 justify-center items-center py-3 rounded-2xl mt-4"
-                    activeOpacity={0.7}
-                >
-                    <Text className="text-white font-bold">Delete your account</Text>
-                </TouchableOpacity>
             </ScrollView>
             
         </SafeAreaView>

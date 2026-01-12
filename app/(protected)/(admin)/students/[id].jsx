@@ -135,7 +135,7 @@ export default function StudentDetailsScreen() {
                                 // Render each club in the array vertically stacked
                                 <View className="mr-4">
                                     {item.map((club) => (
-                                        <RenderClub key={club.id} club={club} onPress={() => router.push(`(student)/clubs/${club.id}`)} />
+                                        <RenderClub key={club.id} club={club} />
                                     ))}
                                 </View>                        
                             )}

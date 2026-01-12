@@ -25,6 +25,18 @@ export default function IDLayout() {
                     title: "Members",                    
                 }} 
             />
+            <Stack.Screen 
+                name="viewPastEvents" 
+                options={{
+                    title: "Past Events",                    
+                }} 
+            />
+            <Stack.Screen 
+                name="viewEvent" 
+                options={{
+                    title: "",                    
+                }} 
+            />
         </Stack>
     )
 }

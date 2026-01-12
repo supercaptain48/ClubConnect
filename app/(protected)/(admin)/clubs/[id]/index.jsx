@@ -28,35 +28,39 @@ export default function ClubPage() {
     const [selectedAnnouncementId, setSelectedAnnouncementId] = useState(null);
 
     useEffect(() => {
+        const q = query(collection(db, "clubs", params.id, "events"), orderBy("startDate", "desc"));
         let club = {};
-        const unsubscribe = onSnapshot(doc(db, "clubs", params.id), (doc) => {
-            club = doc.data();
-            setClub(club);
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            // Get club details
+            const clubSnap = await getDoc(doc(db, "clubs", params.id));
+            club = clubSnap.data();
+            setClub(clubSnap.data());
 
-            // Sort events by date
-            if (club?.events) {
-                const events = [...club.events].sort(
-                    (a, b) => a.startDate.toDate() - b.startDate.toDate()
-                ).map(e => ({...e, clubName: club.name}));
+            // Sort events by date and filter to only upcoming events
+            const now = new Date();
 
-                // Only show toast if event count increased (and it's not the first load)
-                if (prevEventCountRef.current !== -1 && events.length > prevEventCountRef.current) {
-                    eventCreatedToast();
-                }
+            // Get events from snapshot
+            const events = snapshot.docs.map(doc => ({ ...doc.data(), clubName: club.name, id: doc.id }))
+                .filter(e => e.startDate.toDate() >= now)
+                .sort((a, b) => a.startDate.toDate() - b.startDate.toDate());
 
-                // Track the event count
-                prevEventCountRef.current = events.length;
-
-                setEvents(events);
+            // Only show toast if event count increased (and it's not the first load)
+            if (prevEventCountRef.current !== -1 && events.length > prevEventCountRef.current) {
+                eventCreatedToast();
             }
+
+            // Track the event count
+            prevEventCountRef.current = events.length;
+
+            setEvents(events);
         })
 
-        const q = query(
+        const q2 = query(
             collection(db, "clubs", params.id, "announcements"),
             orderBy("createdAt", "desc")
         );
 
-        const unsubscribe2 = onSnapshot(q, (snapshot) => {
+        const unsubscribe2 = onSnapshot(q2, (snapshot) => {
             const announcements = snapshot.docs.map(doc => ({
                 id: doc.id,
                 clubName: club.name,
@@ -108,6 +112,15 @@ export default function ClubPage() {
                         onPress={() => router.push(`/(admin)/clubs/${club.id}/members`)}
                     >
                         <Text className="text-white font-bold flex-1">View members</Text>
+                        <AntDesign name="right" size={16} color="white" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        className="bg-green-500 px-3 py-2 rounded-xl flex-row items-center justify-center -mt-2 mb-6"
+                        activeOpacity={0.7}
+                        onPress={() => router.push(`/(admin)/clubs/${club.id}/viewPastEvents`)}
+                    >
+                        <Text className="text-white font-bold flex-1">View past events</Text>
                         <AntDesign name="right" size={16} color="white" />
                     </TouchableOpacity>
 
