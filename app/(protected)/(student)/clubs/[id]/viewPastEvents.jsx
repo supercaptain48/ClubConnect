@@ -22,7 +22,6 @@ export default function ViewPastEventsScreen() {
             const snapshot = await getDocs(collection(db, "clubs", params.id, "events"), orderBy("startDate", "desc"));
             const e = snapshot.docs.map(doc => ({ ...doc.data(), clubName: club.name, id: doc.id, clubId: params.id }));
             setEvents(e);
-            console.log(e)
         }
         
         fetchData();

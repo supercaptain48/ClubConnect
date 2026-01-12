@@ -170,7 +170,7 @@ export default function ClubPage() {
                         <AntDesign name="right" size={16} color="white" />
                     </TouchableOpacity>
 
-                    {userData?.myClubs?.includes(clubId) || userData?.clubsJoined?.includes(clubId) && 
+                    {(userData?.myClubs?.includes(clubId) || userData?.clubsJoined?.includes(clubId)) && 
                     <TouchableOpacity
                         className="bg-green-500 px-3 py-2 rounded-xl flex-row items-center justify-center -mt-2 mb-6"
                         activeOpacity={0.7}
