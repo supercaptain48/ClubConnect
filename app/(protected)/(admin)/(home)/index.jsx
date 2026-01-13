@@ -29,13 +29,14 @@ export default function AdminHome() {
     const [events, setEvents] = useState([]);
 
     useEffect(() => {
+        // Fetch announcements for the user
         const q = query(
             collection(db, "users", userData.id, "feed"),
             orderBy("createdAt", "desc")
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const feed = snapshot.docs.map(doc => ({
+            const feed = snapshot.docs?.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
@@ -51,13 +52,11 @@ export default function AdminHome() {
             doc(db, "schools", schoolData.id),
             (snapshot) => {
                 const school = snapshot.data();
-                const allEvents = school.events.map((e) => ({...e, clubName: schoolData.name}));
+                const allEvents = school.events?.map((e) => ({...e, clubName: schoolData.name}));
 
                 // Filter events that are in the future and sort by date
                 const now = new Date();
-                const events = allEvents
-                    .filter(e => e.startDate.toDate() >= now)
-                    .sort((a, b) => a.startDate.toDate() - b.startDate.toDate());
+                const events = allEvents?.filter(e => e.startDate.toDate() >= now)?.sort((a, b) => a.startDate.toDate() - b.startDate.toDate());
 
                 setEvents(events);
                 setSchoolData(school);
@@ -121,7 +120,7 @@ export default function AdminHome() {
                         contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 16 }}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
-                    /> : <Text>No upcoming announcements</Text>}
+                    /> : <Text>No announcements</Text>}
             </Box>
         </ScrollView>
         
