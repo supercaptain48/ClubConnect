@@ -11,6 +11,16 @@ export const EventCard = ({ e, onPress }) => {
     )
 }
 
+export const AttendanceEventCard = ({ e, attended }) => {
+    return (
+        <TouchableOpacity key={e.name} className="mb-4 p-3 border border-gray-200 rounded-lg" activeOpacity={0.7}>
+            <Text className="text-2xl font-bold mb-1">{e.name}</Text>
+            <Text className="text-gray-600">{e.startDate.toDate().toLocaleDateString([], { weekday: 'short' })}, {e.startDate.toDate().toLocaleDateString([], { month: 'short', day: 'numeric' })} · {e.startDate.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+            {attended ? <Text className="text-gray-500 mt-1">Attended</Text> : <Text className="text-red-600 mt-1">Missed</Text>}
+        </TouchableOpacity>
+    )
+}
+
 export const MiniEventCard = ({ e, closes }) => {
     return (
         <View key={e.name} className="mb-2 py-2 px-4 border border-gray-200 rounded-lg">

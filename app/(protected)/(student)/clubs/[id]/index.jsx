@@ -170,13 +170,26 @@ export default function ClubPage() {
                         <AntDesign name="right" size={16} color="white" />
                     </TouchableOpacity>
 
-                    {(userData?.myClubs?.includes(clubId) || userData?.clubsJoined?.includes(clubId)) && 
+                    {/* If club leader, then show view past events button */}
+                    {userData?.myClubs?.includes(clubId) && 
                     <TouchableOpacity
                         className="bg-green-500 px-3 py-2 rounded-xl flex-row items-center justify-center -mt-2 mb-6"
                         activeOpacity={0.7}
                         onPress={() => router.push(`/(student)/clubs/${clubId}/viewPastEvents`)}
                     >
                         <Text className="text-white font-bold flex-1">View past events</Text>
+                        <AntDesign name="right" size={16} color="white" />
+                    </TouchableOpacity>
+                    }
+
+                    {/* If student has joined the club, then show view attendance record button */}
+                    {userData?.clubsJoined?.includes(clubId) && 
+                    <TouchableOpacity
+                        className="bg-green-500 px-3 py-2 rounded-xl flex-row items-center justify-center -mt-2 mb-6"
+                        activeOpacity={0.7}
+                        onPress={() => router.push(`/(student)/clubs/${clubId}/viewAttendanceRecord`)}
+                    >
+                        <Text className="text-white font-bold flex-1">View attendance record</Text>
                         <AntDesign name="right" size={16} color="white" />
                     </TouchableOpacity>
                     }

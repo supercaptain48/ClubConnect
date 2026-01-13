@@ -41,9 +41,11 @@ export default function ViewEventScreen() {
             <Text className="text-2xl font-bold text-green-500">{event.name}</Text>
             <Text className="font-bold">Code: {event.code}</Text>
             <Text className="text-gray-500 mt-1 mb-8">{attendees.length} students checked in</Text>
+
+            <Text className="text-lg font-bold mb-4">Attendees:</Text>
             <FlatList 
                 data={attendees}
-                key={(item) => item.id}
+                keyExtractor={(item) => item.id}
                 renderItem={({ item }) => <RenderMember member={item} />}
             />
         </SafeAreaView>

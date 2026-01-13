@@ -37,6 +37,12 @@ export default function IDLayout() {
                     title: "",                    
                 }} 
             />
+            <Stack.Screen 
+                name="viewAttendanceRecord" 
+                options={{
+                    title: "Attendance Record",                    
+                }} 
+            />
         </Stack>
     )
 }
