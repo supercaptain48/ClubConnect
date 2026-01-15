@@ -120,7 +120,7 @@ export default function AdminHome() {
                         contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 16 }}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
-                    /> : <Text>No announcements</Text>}
+                    /> : <Text>No new announcements</Text>}
             </Box>
         </ScrollView>
         

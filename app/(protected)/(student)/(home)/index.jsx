@@ -206,7 +206,7 @@ export default function Index() {
                         contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 16 }}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
-                    /> : <Text>No upcoming announcements</Text>}
+                    /> : <Text>No new announcements</Text>}
             </Box>
 
             <Text className="font-bold text-xl mt-8">Upcoming Events</Text>
