@@ -87,7 +87,7 @@ sized for mobile screens, and screens are adjusted for different device sizes.
 <p align="center">
    <img alt="Settings Screen" width="25%" src="https://github.com/user-attachments/assets/ad3bb896-0791-4666-9aed-0a04f9f2c386" />
    &nbsp;&nbsp;&nbsp;&nbsp;
-   <img alt="Attendance Screen" width="25%" src="https://github.com/user-attachments/assets/ed35af88-b191-4e91-b3df-7714c2112fca" />
-   &nbsp;&nbsp;&nbsp;&nbsp;
    <img alt="Specific Club Screen" width="25%" src="https://github.com/user-attachments/assets/d7dbe244-b94d-41ff-b7d3-c3a9e098d7c3" />
+   &nbsp;&nbsp;&nbsp;&nbsp;
+   <img alt="Attendance Screen" width="25%" src="https://github.com/user-attachments/assets/ed35af88-b191-4e91-b3df-7714c2112fca" />
 </p>
